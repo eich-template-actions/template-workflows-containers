@@ -1,0 +1,62 @@
+name: Build Aplicacao Java
+
+on:
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+      SONAR_HOST_URL:
+        required: true
+    inputs:
+      apply:
+        default: false
+        description: Aplicar no ambiente?
+        required: false
+        type: boolean
+
+
+jobs:
+  Build:
+    runs-on: eich
+    env:
+      APPLICATION: ${{ vars.application }}
+      BRANCH: ${{ github.ref_name }}
+      VERSION: 1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: eich-template-actions/template-action-sast/.github/actions/sast@master
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+      - name: Compile Application
+        run: |
+          echo "Compilando a Imagem $APPLICATION:$BRANCH-$VERSION";
+          docker build -t $APPLICATION:$BRANCH-$VERSION .;
+      - name: Push Image
+        if: ${{ inputs.apply }}
+        env:
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+        run: kind load docker-image $APPLICATION:$BRANCH-$VERSION --name $CLUSTER_NAME
+      - name: Upload do Helm como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm
+          path: helm
+          retention-days: 0
+
+  Apply-Local:
+    runs-on: eich
+    environment: local
+    needs: Build
+    if: ${{ inputs.apply }}
+    steps:
+      - name: Apply
+        env:
+          APPLICATION: ${{ vars.application }}
+          BRANCH: ${{ github.ref_name }}
+          VERSION: 1
+          NAMESPACE: ${{ vars.namespace }}
+        run: |
+          helm upgrade --install $APPLICATION helm/$APPLICATION/ -n app-$NAMESPACE --set image.tag="$BRANCH-$VERSION" --create-namespace
+      
