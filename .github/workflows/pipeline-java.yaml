@@ -60,3 +60,10 @@ jobs:
         run: |
           helm upgrade --install $APPLICATION helm/$APPLICATION/ -n app-$NAMESPACE --set image.tag="$BRANCH-$VERSION" --create-namespace
       
+  limpeza:
+    if: always()
+    needs: Apply-Local
+    runs-on: eich
+    steps:
+      - name: Limpar
+        uses: eich-template-actions/template-action-limpeza/actions/limpeza@master
