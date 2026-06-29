@@ -29,7 +29,7 @@ on:
 
 
 jobs:
-  Build:
+  Sast:
     runs-on: eich
     steps:
       - name: Checkout
@@ -38,6 +38,12 @@ jobs:
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+  Build:
+    runs-on: eich
+    needs: Sast
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Compile Application
         env:
           APPLICATION: ${{ vars.application }}
