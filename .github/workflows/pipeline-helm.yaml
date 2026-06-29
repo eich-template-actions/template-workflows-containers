@@ -1,0 +1,100 @@
+name: Build Aplicacao Helm
+
+on:
+  workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
+      SONAR_HOST_URL:
+        required: true
+    inputs:
+      release:
+        description: Versão da Release
+        required: false
+        type: string
+
+
+jobs:
+  Build:
+    runs-on: eich
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: eich-template-actions/template-action-sast/.github/actions/sast@master
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
+      - name: Compile Application
+        env:
+          APPLICATION: ${{ vars.application }}
+          VERSION: ${{ inputs.release }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+          CLIENTID_GITHUB: ${{ secrets.CLIENTID_GITHUB }}
+          SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
+        run: |
+          echo "Compilando a Imagem $APPLICATION:$VERSION";
+          docker build -t $APPLICATION:$VERSION .;
+      - name: Push Image
+        if: ${{ inputs.release }}
+        env:
+          APPLICATION: ${{ vars.application }}
+          VERSION: ${{ inputs.release }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+          CLIENTID_GITHUB: ${{ secrets.CLIENTID_GITHUB }}
+          SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
+          CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
+        run: kind load docker-image $APPLICATION:$VERSION --name $CLUSTER_NAME
+      - name: Upload do Helm como artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm
+          path: helm
+          retention-days: 0
+
+  Apply-Local:
+    runs-on: eich
+    environment: local
+    needs: Build
+    if: ${{ inputs.release }}
+    steps:
+      - name: Apply
+        env:
+          APPLICATION: ${{ vars.application }}
+          NAMESPACE: ${{ vars.namespace }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
+          CLIENTID_GITHUB: ${{ secrets.CLIENTID_GITHUB }}
+          SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
+        run: |
+          helm dependency update ./Helm
+          helm upgrade --install $APPLICATION ./Helm -f ./Helm/values.yaml \
+          --set secrets.postgres.host="$POSTGRES_HOST" \
+          --set secrets.postgres.port="$POSTGRES_PORT" \
+          --set secrets.postgres.user="$POSTGRES_USER" \
+          --set secrets.postgres.password="$POSTGRES_PASSWORD" \
+          --set secrets.github.token="$TOKEN_GITHUB" \
+          --set secrets.github.clientId="$CLIENTID_GITHUB" \
+          --set secrets.github.clientSecret="$SECRET_GITHUB" \
+          -n app-$APPLICATION \
+          --create-namespace
+
+          echo "Aplicado: $APPLICATION";
+
+  limpeza:
+    if: always()
+    needs: Apply-Local
+    runs-on: eich
+    steps:
+      - name: Limpar
+        uses: eich-template-actions/template-action-limpeza/actions/limpeza@master
