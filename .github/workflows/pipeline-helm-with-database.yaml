@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: eich-template-actions/template-action-sast/.github/actions/sast@master
+      - uses: eich-template-actions/template-action-security/.github/actions/sast@master
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
