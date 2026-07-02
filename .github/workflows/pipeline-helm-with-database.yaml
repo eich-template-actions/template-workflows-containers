@@ -61,6 +61,7 @@ jobs:
       - uses: eich-template-actions/template-action-security/.github/actions/image@master
         with:
           version: ${{ inputs.release }}
+          application: ${{ vars.application }}
       - name: Push Image
         if: ${{ inputs.release }}
         env:
