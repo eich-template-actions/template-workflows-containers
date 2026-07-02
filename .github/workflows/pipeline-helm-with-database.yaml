@@ -58,6 +58,9 @@ jobs:
         run: |
           echo "Compilando a Imagem $APPLICATION:$VERSION";
           docker build -t $APPLICATION:$VERSION .;
+      - uses: eich-template-actions/template-action-security/.github/actions/image@master
+        with:
+          version: ${{ inputs.release }}
       - name: Push Image
         if: ${{ inputs.release }}
         env:
