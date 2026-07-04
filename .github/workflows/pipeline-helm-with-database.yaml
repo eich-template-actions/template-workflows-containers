@@ -44,6 +44,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Compile Application
         env:
           APPLICATION: ${{ vars.application }}
@@ -58,10 +59,12 @@ jobs:
         run: |
           echo "Compilando a Imagem $APPLICATION:$VERSION";
           docker build -t $APPLICATION:$VERSION .;
+
       - uses: eich-template-actions/template-action-security/.github/actions/image@master
         with:
           version: ${{ inputs.release }}
           application: ${{ vars.application }}
+
       - name: Push Image
         if: ${{ inputs.release }}
         env:
@@ -76,6 +79,7 @@ jobs:
           SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
           CLUSTER_NAME: ${{ vars.CLUSTER_NAME }}
         run: kind load docker-image $APPLICATION:$VERSION --name $CLUSTER_NAME
+
       - name: Upload do Helm como artefato
         uses: actions/upload-artifact@v4
         with:
