@@ -59,12 +59,20 @@ jobs:
         run: |
           echo "Compilando a Imagem $APPLICATION:$VERSION";
           docker build -t $APPLICATION:$VERSION .;
-
+  
+  ScannerImage:
+    runs-on: eich
+    needs: Build
+    steps:
       - uses: eich-template-actions/template-action-security/.github/actions/image@master
         with:
           version: ${{ inputs.release }}
           application: ${{ vars.application }}
 
+  PushImage:
+    runs-on: eich
+    needs: Build
+    steps:
       - name: Push Image
         if: ${{ inputs.release }}
         env:
@@ -89,7 +97,10 @@ jobs:
   Apply-Local:
     runs-on: eich
     environment: local
-    needs: Build
+    needs:
+      - Build
+      - ScannerImage
+      - PushImage
     if: ${{ inputs.release }}
     steps:
       - name: Download do Helm como artefato
