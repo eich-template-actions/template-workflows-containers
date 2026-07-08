@@ -105,6 +105,7 @@ jobs:
           TOKEN_GITHUB: ${{ secrets.TOKEN_GITHUB }}
           CLIENTID_GITHUB: ${{ secrets.CLIENTID_GITHUB }}
           SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
+          HOSTNAME: ${{ vars.HOSTNAME }}
         run: |
           helm dependency update ./Helm
           helm upgrade --install $APPLICATION ./Helm -f ./Helm/values.yaml \
@@ -115,6 +116,7 @@ jobs:
           --set secrets.github.token="$TOKEN_GITHUB" \
           --set secrets.github.clientId="$CLIENTID_GITHUB" \
           --set secrets.github.clientSecret="$SECRET_GITHUB" \
+          --set secrets.hostname="$HOSTNAME" \
           -n app-$APPLICATION \
           --create-namespace
 
