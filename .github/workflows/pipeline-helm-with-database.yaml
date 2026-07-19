@@ -98,6 +98,7 @@ jobs:
         env:
           APPLICATION: ${{ vars.application }}
           NAMESPACE: ${{ vars.namespace }}
+          VERSION: ${{ inputs.release }}
           POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
           POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
@@ -112,6 +113,7 @@ jobs:
           --set secrets.postgres.host="$POSTGRES_HOST" \
           --set secrets.postgres.port="$POSTGRES_PORT" \
           --set secrets.postgres.user="$POSTGRES_USER" \
+          --set backstage.backstage.image.tag="$VERSION" \
           --set secrets.postgres.password="$POSTGRES_PASSWORD" \
           --set secrets.github.token="$TOKEN_GITHUB" \
           --set secrets.github.clientId="$CLIENTID_GITHUB" \
