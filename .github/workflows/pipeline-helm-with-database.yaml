@@ -131,10 +131,10 @@ jobs:
           --set secrets.github.clientId="$CLIENTID_GITHUB" \
           --set secrets.github.clientSecret="$SECRET_GITHUB" \
           --set secrets.hostname="$HOSTNAME" \
-          --set keycloak.auth_keycloak_url="$AUTH_KEYCLOAK_URL \
-          --set keycloak.auth_keycloak_client_id="$AUTH_KEYCLOAK_CLIENT_ID \
-          --set keycloak.auth_keycloak_client_secret="$AUTH_KEYCLOAK_CLIENT_SECRET \
-          --set keycloak.auth_keycloak_realm="$AUTH_KEYCLOAK_REALM
+          --set keycloak.auth_keycloak_url="$AUTH_KEYCLOAK_URL" \
+          --set keycloak.auth_keycloak_client_id="$AUTH_KEYCLOAK_CLIENT_ID" \
+          --set keycloak.auth_keycloak_client_secret="$AUTH_KEYCLOAK_CLIENT_SECRET" \
+          --set keycloak.auth_keycloak_realm="$AUTH_KEYCLOAK_REALM" \
           -n app-$APPLICATION \
           --create-namespace
 
