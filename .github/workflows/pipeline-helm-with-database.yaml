@@ -21,6 +21,14 @@ on:
         required: true
       SECRET_GITHUB:
         required: true
+      AUTH_KEYCLOAK_URL:
+        required: false
+      AUTH_KEYCLOAK_CLIENT_ID:
+        required: false
+      AUTH_KEYCLOAK_CLIENT_SECRET:
+        required: false
+      AUTH_KEYCLOAK_REALM:
+        required: false
     inputs:
       release:
         description: Versão da Release
@@ -107,6 +115,10 @@ jobs:
           CLIENTID_GITHUB: ${{ secrets.CLIENTID_GITHUB }}
           SECRET_GITHUB: ${{ secrets.SECRET_GITHUB }}
           HOSTNAME: ${{ vars.HOSTNAME }}
+          AUTH_KEYCLOAK_URL: ${{ secrets.AUTH_KEYCLOAK_URL }}
+          AUTH_KEYCLOAK_CLIENT_ID: ${{ secrets.AUTH_KEYCLOAK_CLIENT_ID }}
+          AUTH_KEYCLOAK_CLIENT_SECRET: ${{ secrets.AUTH_KEYCLOAK_CLIENT_SECRET }}
+          AUTH_KEYCLOAK_REALM: ${{ secrets.AUTH_KEYCLOAK_REALM }}
         run: |
           helm dependency update ./Helm
           helm upgrade --install $APPLICATION ./Helm -f ./Helm/values.yaml \
@@ -119,6 +131,10 @@ jobs:
           --set secrets.github.clientId="$CLIENTID_GITHUB" \
           --set secrets.github.clientSecret="$SECRET_GITHUB" \
           --set secrets.hostname="$HOSTNAME" \
+          --set keycloak.auth_keycloak_url="$AUTH_KEYCLOAK_URL \
+          --set keycloak.auth_keycloak_client_id="$AUTH_KEYCLOAK_CLIENT_ID \
+          --set keycloak.auth_keycloak_client_secret="$AUTH_KEYCLOAK_CLIENT_SECRET \
+          --set keycloak.auth_keycloak_realm="$AUTH_KEYCLOAK_REALM
           -n app-$APPLICATION \
           --create-namespace
 
